@@ -18,9 +18,11 @@
   window.AppShell = {
     getUser, setUser, isLoggedIn, logout,
     tryLogin: function(name, pwd){
-      if (!VALID_PASSWORDS.includes((pwd||"").trim())) return {ok:false};
-      setUser({ name, ok:true });
-      return {ok:true};
+      const cleanedPwd = (pwd || "").trim().toLowerCase();
+      const allowed = VALID_PASSWORDS.map(p => p.toLowerCase());
+      if (!allowed.includes(cleanedPwd)) return { ok: false };
+      setUser({ name: name.trim(), ok: true });
+      return { ok: true };
     }
   };
 
