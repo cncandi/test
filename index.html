@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚽ Soccer Manager – Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="app-shell.css">
+</head>
+<body class="app-gradient min-h-screen text-white" data-page="index">
+  <div class="container-narrow py-10">
+    <div class="card max-w-md mx-auto">
+      <h1 class="text-3xl font-bold mb-2">Anmelden</h1>
+      <form id="loginForm" class="grid grid-cols-1 gap-4">
+        <div>
+          <label class="block text-sm mb-1">Name</label>
+          <input id="name" class="w-full px-3 py-2 rounded-lg text-gray-900" placeholder="z. B. Andreas" required>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">Passwort</label>
+          <input id="password" type="password" class="w-full px-3 py-2 rounded-lg text-gray-900" required>
+        </div>
+        <div class="flex gap-3 mt-2">
+          <button class="app-btn bg-white text-gray-900 hover:bg-gray-100" type="submit">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="app-shell.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const u = window.AppShell.getUser?.();
+      if(u && u.ok){ location.href='training.html'; return; }
+      document.getElementById('loginForm').addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const pwd  = document.getElementById('password').value.trim();
+        const res = window.AppShell.tryLogin(name, pwd);
+        if(!res.ok){ alert('Login fehlgeschlagen'); return; }
+        location.href = 'training.html';
+      });
+    });
+  </script>
+</body>
+</html>
