@@ -1,141 +1,27 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fußball Team Manager</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f9;
-      color: #333;
-    }
-
-    header {
-      background: #007bff;
-      color: #fff;
-      padding: 1rem;
-      text-align: center;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 1rem auto;
-      padding: 1rem;
-      background: #fff;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    h2 {
-      text-align: center;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: .5rem;
-    }
-
-    .form-group input, .form-group textarea {
-      width: 100%;
-      padding: .5rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-
-    button {
-      background: #007bff;
-      color: #fff;
-      border: none;
-      padding: .5rem 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-
-    table th, table td {
-      border: 1px solid #ddd;
-      padding: .5rem;
-      text-align: center;
-    }
-
-    table th {
-      background: #007bff;
-      color: #fff;
-    }
-
-    .btn-delete {
-      background: #ff4d4d;
-      border: none;
-      padding: .3rem .5rem;
-      color: #fff;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
-    .btn-delete:hover {
-      background: #cc0000;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Strengths and Weaknesses</title>
 </head>
 <body>
-  <header>
-    <h1>Fußball Team Manager</h1>
-  </header>
-
-  <div class="container">
-    <h2>Spieler hinzufügen</h2>
-    <div class="form-group">
-      <label for="spieler-name">Name</label>
-      <input type="text" id="spieler-name" placeholder="Spielername">
-    </div>
-    <div class="form-group">
-      <label for="spieler-nummer">Nummer</label>
-      <input type="number" id="spieler-nummer" placeholder="Rückennummer">
-    </div>
-    <div class="form-group">
-      <label for="spieler-staerken">Stärken</label>
-      <textarea id="spieler-staerken" placeholder="Stärken des Spielers"></textarea>
-    </div>
-    <div class="form-group">
-      <label for="spieler-schwaechen">Schwächen</label>
-      <textarea id="spieler-schwaechen" placeholder="Schwächen des Spielers"></textarea>
-    </div>
-    <button id="spieler-hinzufuegen">Spieler hinzufügen</button>
-
-    <h2>Spielerliste</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Nummer</th>
-          <th>Stärken</th>
-          <th>Schwächen</th>
-          <th>Aktionen</th>
-        </tr>
-      </thead>
-      <tbody id="spielerliste">
-        <!-- Spieler werden hier hinzugefügt -->
-      </tbody>
-    </table>
-  </div>
-
-  <script src="app.js"></script>
+    <h1>Soccer Strengths and Weaknesses</h1>
+    <form>
+        <label for="strengths">Select Strengths:</label>
+        <select id="strengths" name="strengths">
+            <option value="technical">Technical Skills</option>
+            <option value="tactical">Tactical Awareness</option>
+            <option value="physical">Physical Fitness</option>
+            <option value="mental">Mental Toughness</option>
+        </select>
+        <label for="weaknesses">Select Weaknesses:</label>
+        <select id="weaknesses" name="weaknesses">
+            <option value="finishing">Finishing</option>
+            <option value="positioning">Positioning</option>
+            <option value="fitness">Fitness Level</option>
+            <option value="composure">Composure</option>
+        </select>
+    </form>
 </body>
 </html>
