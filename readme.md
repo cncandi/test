@@ -1,12 +1,14 @@
-# Soccer Manager – Einheitliches UI mit Login
+# HTML Generator Studio
 
-- Start über `index.html` (Name + Passwort). Erst nach Login sind `training.html` und `spieltag.html` zugänglich.
-- `app-shell.js` enthält die Login-Logik (hardcoded Passwörter) und blendet die Top-Leiste **nur nach Login** ein.
-- Einheitliche Optik über `app-shell.css`.
+Eine lokale Web-Anwendung, mit der du aus einer **Ursprungs-HTML** eine neue finale HTML erzeugst.
 
-Struktur:
-- `index.html` – Login-Seite
-- `training.html` – geschützte Seite
-- `spieltag.html` – geschützte Seite
-- `app-shell.css` – Design
-- `app-shell.js` – Login/Guard/Header
+## Funktionen
+
+1. Ursprungs-HTML einfügen (**Pflichtschritt**).
+2. Gefundene Texte und Bilder manuell bearbeiten.
+3. Optional KI-Vorschläge für Texte und Bilder über OpenAI-kompatible API nutzen.
+4. Finale HTML generieren und kopieren.
+
+## Start
+
+Einfach `index.html` im Browser öffnen.
