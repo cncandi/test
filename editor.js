@@ -8,7 +8,8 @@ const aiStatus = document.getElementById('aiStatus');
 const state = {
   parsedDoc: null,
   textNodes: [],
-  imageNodes: []
+  imageNodes: [],
+  imageRefs: []
 };
 
 function setStatus(el, message, isError = false) {
@@ -21,10 +22,48 @@ function clearLists() {
   imageList.innerHTML = '';
 }
 
+function toAbsoluteUrl(url, baseUrl) {
+  if (!url) return '';
+  try {
+    return new URL(url, baseUrl || window.location.href).href;
+  } catch {
+    return url;
+  }
+}
+
+function looksLikeUrl(value) {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+async function loadUrlIntoSource() {
+  const raw = sourceHtml.value.trim();
+  if (!looksLikeUrl(raw)) {
+    setStatus(parseStatus, 'Bitte gib eine vollständige URL mit http/https ein.', true);
+    return;
+  }
+
+  setStatus(parseStatus, 'Lade URL-Inhalt...');
+  try {
+    const response = await fetch(raw);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    sourceHtml.value = await response.text();
+    setStatus(parseStatus, 'URL erfolgreich geladen. Du kannst jetzt analysieren.');
+  } catch (error) {
+    setStatus(parseStatus, `URL konnte nicht geladen werden (${error.message}). Falls CORS blockiert, bitte HTML-Quelltext manuell einfügen.`, true);
+  }
+}
+
 function parseSourceHtml() {
   const raw = sourceHtml.value.trim();
   if (!raw) {
     setStatus(parseStatus, 'Bitte zuerst Ursprungs-HTML einfügen.', true);
+    return;
+  }
+
+  if (looksLikeUrl(raw)) {
+    setStatus(parseStatus, 'Es wurde nur eine URL erkannt. Bitte zuerst auf „URL laden“ klicken oder den HTML-Quelltext einfügen.', true);
     return;
   }
 
@@ -36,13 +75,59 @@ function parseSourceHtml() {
     return;
   }
 
+  const baseElement = doc.querySelector('base[href]');
+  const baseHref = baseElement?.getAttribute('href') || '';
+
   state.parsedDoc = doc;
   state.textNodes = extractEditableTexts(doc.body);
   state.imageNodes = Array.from(doc.querySelectorAll('img'));
+  state.imageRefs = extractImageReferences(doc, raw, baseHref);
+
+  if (!state.textNodes.length) {
+    state.textNodes = extractTextFromPlainSource(raw);
+  }
 
   renderTextInputs();
   renderImageInputs();
-  setStatus(parseStatus, `Analyse fertig: ${state.textNodes.length} Texte, ${state.imageNodes.length} Bilder gefunden.`);
+  const foundImageCount = Math.max(state.imageNodes.length, state.imageRefs.length);
+  setStatus(parseStatus, `Analyse fertig: ${state.textNodes.length} Texte, ${foundImageCount} Bilder gefunden.`);
+}
+
+function extractTextFromPlainSource(raw) {
+  const lines = raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .filter((line) => !/^<[^>]+>$/.test(line));
+
+  return lines.map((line) => ({ textContent: line }));
+}
+
+function extractImageReferences(doc, raw, baseHref) {
+  const refs = [];
+
+  for (const img of doc.querySelectorAll('img')) {
+    refs.push({ src: toAbsoluteUrl(img.getAttribute('src') || '', baseHref), alt: img.getAttribute('alt') || '', node: img, kind: 'img' });
+  }
+
+  for (const a of doc.querySelectorAll('a[href]')) {
+    const href = a.getAttribute('href') || '';
+    if (/\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(href)) {
+      refs.push({ src: toAbsoluteUrl(href, baseHref), alt: a.textContent.trim(), node: a, kind: 'link' });
+    }
+  }
+
+  const rawMatches = raw.match(/(?:https?:\/\/|\/)?[^\s"'<>]+\.(?:png|jpe?g|webp|gif|svg)(?:\?[^\s"'<>]*)?/gi) || [];
+  for (const src of rawMatches) {
+    refs.push({ src: toAbsoluteUrl(src, baseHref), alt: '', node: null, kind: 'raw' });
+  }
+
+  const dedup = new Map();
+  for (const ref of refs) {
+    if (!ref.src) continue;
+    if (!dedup.has(ref.src)) dedup.set(ref.src, ref);
+  }
+  return Array.from(dedup.values());
 }
 
 function extractEditableTexts(root) {
@@ -98,31 +183,40 @@ function renderTextInputs() {
 function renderImageInputs() {
   imageList.innerHTML = '';
 
-  if (!state.imageNodes.length) {
+  if (!state.imageRefs.length) {
     imageList.innerHTML = '<p>Keine Bilder gefunden.</p>';
     return;
   }
 
-  state.imageNodes.forEach((img, index) => {
+  state.imageRefs.forEach((imageRef, index) => {
     const wrap = document.createElement('div');
     wrap.className = 'item';
 
     const srcLabel = document.createElement('label');
-    srcLabel.textContent = `Bild ${index + 1}: URL`;
+    srcLabel.textContent = `Bild ${index + 1}: URL (${imageRef.kind})`;
 
     const srcInput = document.createElement('input');
-    srcInput.value = img.getAttribute('src') || '';
+    srcInput.value = imageRef.src || '';
     srcInput.addEventListener('input', () => {
-      state.imageNodes[index].setAttribute('src', srcInput.value);
+      state.imageRefs[index].src = srcInput.value;
+      if (state.imageRefs[index].node && state.imageRefs[index].kind === 'img') {
+        state.imageRefs[index].node.setAttribute('src', srcInput.value);
+      }
+      if (state.imageRefs[index].node && state.imageRefs[index].kind === 'link') {
+        state.imageRefs[index].node.setAttribute('href', srcInput.value);
+      }
     });
 
     const altLabel = document.createElement('label');
     altLabel.textContent = 'Alt-Text';
 
     const altInput = document.createElement('input');
-    altInput.value = img.getAttribute('alt') || '';
+    altInput.value = imageRef.alt || '';
     altInput.addEventListener('input', () => {
-      state.imageNodes[index].setAttribute('alt', altInput.value);
+      state.imageRefs[index].alt = altInput.value;
+      if (state.imageRefs[index].node && state.imageRefs[index].kind === 'img') {
+        state.imageRefs[index].node.setAttribute('alt', altInput.value);
+      }
     });
 
     wrap.append(srcLabel, srcInput, altLabel, altInput);
@@ -188,13 +282,13 @@ async function aiSuggestTexts() {
 }
 
 async function aiSuggestImages() {
-  if (!state.imageNodes.length) {
+  if (!state.imageRefs.length) {
     setStatus(aiStatus, 'Bitte zuerst HTML analysieren.', true);
     return;
   }
 
-  const images = state.imageNodes
-    .map((img, i) => `${i + 1}. src=${img.getAttribute('src') || ''}, alt=${img.getAttribute('alt') || ''}`)
+  const images = state.imageRefs
+    .map((img, i) => `${i + 1}. src=${img.src || ''}, alt=${img.alt || ''}`)
     .join('\n');
   const prompt = `Erstelle neue, realistische Bildideen. Gib nur JSON mit {"images":[{"src":"https://...","alt":"..."}]} zurück:\n${images}`;
 
@@ -205,9 +299,17 @@ async function aiSuggestImages() {
     if (!Array.isArray(parsed.images)) throw new Error('Ungültige KI-Antwort für Bilder.');
 
     parsed.images.forEach((image, i) => {
-      if (!state.imageNodes[i]) return;
-      state.imageNodes[i].setAttribute('src', image.src || '');
-      state.imageNodes[i].setAttribute('alt', image.alt || '');
+      if (!state.imageRefs[i]) return;
+      state.imageRefs[i].src = image.src || '';
+      state.imageRefs[i].alt = image.alt || '';
+
+      if (state.imageRefs[i].node && state.imageRefs[i].kind === 'img') {
+        state.imageRefs[i].node.setAttribute('src', image.src || '');
+        state.imageRefs[i].node.setAttribute('alt', image.alt || '');
+      }
+      if (state.imageRefs[i].node && state.imageRefs[i].kind === 'link') {
+        state.imageRefs[i].node.setAttribute('href', image.src || '');
+      }
     });
     renderImageInputs();
     setStatus(aiStatus, 'Bildideen übernommen.');
@@ -240,6 +342,7 @@ async function copyResult() {
 }
 
 document.getElementById('parseBtn').addEventListener('click', parseSourceHtml);
+document.getElementById('loadUrlBtn').addEventListener('click', loadUrlIntoSource);
 document.getElementById('buildBtn').addEventListener('click', buildHtml);
 document.getElementById('copyBtn').addEventListener('click', copyResult);
 document.getElementById('aiTextBtn').addEventListener('click', aiSuggestTexts);

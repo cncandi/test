@@ -15,8 +15,10 @@
 
     <section class="panel">
       <h2>1. Ursprungs-HTML (Pflicht)</h2>
+      <p>Du kannst komplette HTML einfügen oder eine URL (z. B. Doku-Seite). Bei URL versuchen wir den Inhalt automatisch zu laden.</p>
       <textarea id="sourceHtml" rows="10" placeholder="Füge hier deine originale HTML ein..."></textarea>
       <div class="actions">
+        <button id="loadUrlBtn" class="secondary">URL laden</button>
         <button id="parseBtn">HTML analysieren</button>
       </div>
       <p id="parseStatus" class="status"></p>

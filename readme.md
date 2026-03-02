@@ -4,10 +4,11 @@ Eine lokale Web-Anwendung, mit der du aus einer **Ursprungs-HTML** eine neue fin
 
 ## Funktionen
 
-1. Ursprungs-HTML einfügen (**Pflichtschritt**).
-2. Gefundene Texte und Bilder manuell bearbeiten.
-3. Optional KI-Vorschläge für Texte und Bilder über OpenAI-kompatible API nutzen.
-4. Finale HTML generieren und kopieren.
+1. Ursprungs-HTML einfügen (**Pflichtschritt**) oder zuerst eine URL laden.
+2. Texte und Bilder werden erkannt und können manuell bearbeitet werden.
+3. Bilderkennung funktioniert über `<img>`, Bild-Links (`<a href="...png">`) und rohe Bildpfade/URLs im Text.
+4. Optional KI-Vorschläge für Texte und Bilder über OpenAI-kompatible API nutzen.
+5. Finale HTML generieren und kopieren.
 
 ## Start
 
