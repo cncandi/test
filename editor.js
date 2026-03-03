@@ -78,10 +78,12 @@ function parseSourceHtml() {
   const baseElement = doc.querySelector('base[href]');
   const baseHref = baseElement?.getAttribute('href') || '';
 
+  const contentRoot = pickContentRoot(doc);
+
   state.parsedDoc = doc;
-  state.textNodes = extractEditableTexts(doc.body);
-  state.imageNodes = Array.from(doc.querySelectorAll('img'));
-  state.imageRefs = extractImageReferences(doc, raw, baseHref);
+  state.textNodes = extractEditableTexts(contentRoot);
+  state.imageNodes = Array.from(contentRoot.querySelectorAll('img'));
+  state.imageRefs = extractImageReferences(contentRoot, raw, baseHref);
 
   if (!state.textNodes.length) {
     state.textNodes = extractTextFromPlainSource(raw);
@@ -103,14 +105,23 @@ function extractTextFromPlainSource(raw) {
   return lines.map((line) => ({ textContent: line }));
 }
 
-function extractImageReferences(doc, raw, baseHref) {
+function pickContentRoot(doc) {
+  return (
+    doc.querySelector('#main-content')
+    || doc.querySelector('article#ht-content')
+    || doc.querySelector('main')
+    || doc.body
+  );
+}
+
+function extractImageReferences(root, raw, baseHref) {
   const refs = [];
 
-  for (const img of doc.querySelectorAll('img')) {
+  for (const img of root.querySelectorAll('img')) {
     refs.push({ src: toAbsoluteUrl(img.getAttribute('src') || '', baseHref), alt: img.getAttribute('alt') || '', node: img, kind: 'img' });
   }
 
-  for (const a of doc.querySelectorAll('a[href]')) {
+  for (const a of root.querySelectorAll('a[href]')) {
     const href = a.getAttribute('href') || '';
     if (/\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(href)) {
       refs.push({ src: toAbsoluteUrl(href, baseHref), alt: a.textContent.trim(), node: a, kind: 'link' });
@@ -131,9 +142,27 @@ function extractImageReferences(doc, raw, baseHref) {
 }
 
 function extractEditableTexts(root) {
+  const blockSelectors = 'p,li,h1,h2,h3,h4,h5,h6,figcaption,blockquote,td,th';
+  const blockNodes = Array.from(root.querySelectorAll(blockSelectors));
+  if (blockNodes.length) {
+    const items = blockNodes
+      .map((el) => ({ element: el, text: normalizeText(el.textContent || '') }))
+      .filter((item) => item.text.length > 0)
+      .map((item) => ({
+        get textContent() {
+          return normalizeText(item.element.textContent || '');
+        },
+        set textContent(next) {
+          item.element.textContent = next;
+        }
+      }));
+
+    if (items.length) return items;
+  }
+
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
-      const value = node.textContent.trim();
+      const value = normalizeText(node.textContent || '');
       if (!value) return NodeFilter.FILTER_REJECT;
       if (node.parentElement && ['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(node.parentElement.tagName)) {
         return NodeFilter.FILTER_REJECT;
@@ -145,9 +174,22 @@ function extractEditableTexts(root) {
   const nodes = [];
   let current;
   while ((current = walker.nextNode())) {
-    nodes.push(current);
+    const normalized = normalizeText(current.textContent || '');
+    if (!normalized) continue;
+    nodes.push({
+      get textContent() {
+        return normalized;
+      },
+      set textContent(next) {
+        current.textContent = next;
+      }
+    });
   }
   return nodes;
+}
+
+function normalizeText(value) {
+  return value.replace(/\s+/g, ' ').trim();
 }
 
 function renderTextInputs() {
