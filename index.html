@@ -1,27 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soccer Strengths and Weaknesses</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Generator Studio</title>
+  <link rel="stylesheet" href="editor.css">
 </head>
 <body>
-    <h1>Soccer Strengths and Weaknesses</h1>
-    <form>
-        <label for="strengths">Select Strengths:</label>
-        <select id="strengths" name="strengths">
-            <option value="technical">Technical Skills</option>
-            <option value="tactical">Tactical Awareness</option>
-            <option value="physical">Physical Fitness</option>
-            <option value="mental">Mental Toughness</option>
-        </select>
-        <label for="weaknesses">Select Weaknesses:</label>
-        <select id="weaknesses" name="weaknesses">
-            <option value="finishing">Finishing</option>
-            <option value="positioning">Positioning</option>
-            <option value="fitness">Fitness Level</option>
-            <option value="composure">Composure</option>
-        </select>
-    </form>
+  <main class="app">
+    <header>
+      <h1>HTML Generator Studio</h1>
+      <p>1) Ursprungs-HTML einfügen → 2) Texte/Bilder anpassen (manuell oder KI) → 3) finale HTML erzeugen.</p>
+    </header>
+
+    <section class="panel">
+      <h2>1. Ursprungs-HTML (Pflicht)</h2>
+      <p>Du kannst komplette HTML einfügen oder eine URL (z. B. Doku-Seite). Bei URL versuchen wir den Inhalt automatisch zu laden.</p>
+      <textarea id="sourceHtml" rows="10" placeholder="Füge hier deine originale HTML ein..."></textarea>
+      <div class="actions">
+        <button id="loadUrlBtn" class="secondary">URL laden</button>
+        <button id="parseBtn">HTML analysieren</button>
+      </div>
+      <p id="parseStatus" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>2. Inhalte bearbeiten</h2>
+      <div class="subgrid">
+        <div>
+          <h3>Texte</h3>
+          <div id="textList" class="item-list"></div>
+        </div>
+        <div>
+          <h3>Bilder</h3>
+          <div id="imageList" class="item-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3. KI-Unterstützung (optional)</h2>
+      <p>Wenn du einen OpenAI-kompatiblen API-Key hast, kannst du Vorschläge erzeugen. Ohne Key bleibt die manuelle Bearbeitung verfügbar.</p>
+      <div class="subgrid">
+        <label>API-Key
+          <input id="apiKey" type="password" placeholder="sk-...">
+        </label>
+        <label>Modell
+          <input id="model" type="text" value="gpt-4o-mini">
+        </label>
+      </div>
+      <div class="actions">
+        <button id="aiTextBtn" class="secondary">KI-Texte vorschlagen</button>
+        <button id="aiImageBtn" class="secondary">KI-Bildideen vorschlagen</button>
+      </div>
+      <p id="aiStatus" class="status"></p>
+    </section>
+
+    <section class="panel">
+      <h2>4. Finale HTML erzeugen</h2>
+      <div class="actions">
+        <button id="buildBtn">Finale HTML generieren</button>
+        <button id="copyBtn" class="secondary">In Zwischenablage kopieren</button>
+      </div>
+      <textarea id="resultHtml" rows="12" readonly placeholder="Hier erscheint deine generierte HTML..."></textarea>
+    </section>
+  </main>
+
+  <script src="editor.js"></script>
 </body>
 </html>
